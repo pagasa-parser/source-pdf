@@ -1,0 +1,54 @@
+{
+    "name": "@pagasa-parser/source-pdf",
+    "version": "1.0.0",
+    "description": "Allows parsing of PAGASA TCB PDF files into pagasa-parser Bulletins.",
+    "main": "build/PagasaParserPDFSource.js",
+    "scripts": {
+        "build": "tsc",
+        "test": "jest",
+        "coverage": "npm run coverage:full",
+        "coverage:full": "jest --coverage --collectCoverageFrom=src/**/*.{js,jsx,ts,tsx}",
+        "coverage:minimal": "jest --coverage",
+        "reignore": "cat .gitignore > .npmignore && cat .gitignore.npmignore >> .npmignore",
+        "prepack": "npm run build && npm run reignore"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/pagasa-parser/source-xml.git"
+    },
+    "keywords": [
+        "scraper",
+        "weather",
+        "json",
+        "philippines",
+        "typhoon"
+    ],
+    "author": "Chlod Alejandro <chlod@chlod.net> (https://chlod.net)",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/pagasa-parser/source-xml/issues"
+    },
+    "homepage": "https://github.com/pagasa-parser/source-xml#readme",
+    "engines": {
+        "node": ">=13"
+    },
+    "devDependencies": {
+        "@types/cheerio": "^0.22.30",
+        "@types/jest": "^27.0.1",
+        "@types/string-similarity": "^4.0.0",
+        "@typescript-eslint/eslint-plugin": "^4.6.0",
+        "cat": "^0.2.0",
+        "eslint": "^7.12.1",
+        "jest": "^27.1.0",
+        "ts-jest": "^27.0.5",
+        "ts-node": "^10.2.1",
+        "typescript": "^4.4.2"
+    },
+    "peerDependencies": {
+        "pagasa-parser": "^2.0.5"
+    },
+    "dependencies": {
+        "axios": "^0.23.0",
+        "pdfjs-dist": "^2.9.359"
+    }
+}
