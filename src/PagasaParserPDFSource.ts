@@ -95,13 +95,13 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
             url: url.pathToFileURL(this.path).toString(),
             issued: issued,
             expires: expireDate,
-            summary: lattice[0].data[0][0].text
+            summary: lattice.filter(l => l.data.length > 0)[0].data[0][0].text
         }
     }
 
     extractCyclone(stream: TabulaJSONOutput, lattice: TabulaJSONOutput) : Cyclone {
         const title = search(stream, /Tropical Cyclone Bulletin No. (\d+)/gi).next().text;
-        const [_, name, internationalName] = /[“"](.+?)["”](?:\s\((.+?)\))?/g.exec(title);
+        const [, name, internationalName] = /[“"](.+?)["”](?:\s\((.+?)\))?/g.exec(title);
 
         const positionMatch = search(lattice, /([0-9.]+)°([NS]),\s?([0-9.]+)°([WE])/gi).match;
         const position = {
