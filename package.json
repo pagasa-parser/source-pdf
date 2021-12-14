@@ -1,6 +1,6 @@
 {
     "name": "@pagasa-parser/source-pdf",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Allows parsing of PAGASA TCB PDF files into pagasa-parser Bulletins.",
     "main": "build/PagasaParserPDFSource.js",
     "scripts": {
