@@ -128,9 +128,15 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         for (const signalCell of signalHeaders) {
             const signal = +signalCell.match[1] as 1 | 2 | 3 | 4 | 5;
 
+            /* +-------------+-------+---------+----------+
+             * | signal cell | Luzon | Visayas | Mindanao |
+             * +-------------+-------+---------+----------+
+             *   signalCell    .next   .next     .next
+             */
+
             const luzon = new AreaExtractor(signalCell.next().text).extractAreas();
             const visayas = new AreaExtractor(signalCell.next().next().text).extractAreas();
-            const mindanao = new AreaExtractor(signalCell.next().next().text).extractAreas();
+            const mindanao = new AreaExtractor(signalCell.next().next().next().text).extractAreas();
 
             signals[signal] = {
                 areas: {
