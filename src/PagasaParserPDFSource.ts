@@ -7,6 +7,7 @@ import * as child_process from "child_process";
 import * as path from "path";
 import * as url from "url";
 import {search, searchAll} from "./Utilities";
+import type { TabulaJSONOutput } from "./Tabula";
 
 export default class PagasaParserPDFSource extends PagasaParserSource {
 
