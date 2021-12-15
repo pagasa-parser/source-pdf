@@ -1,3 +1,5 @@
+import type {TabulaCell, TabulaJSONOutput, TabulaPage} from "./Tabula";
+
 type ExpandedCell = TabulaCell & {
     cellId: number,
     row: TabulaCell[],
