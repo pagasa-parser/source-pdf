@@ -3,6 +3,14 @@
     "version": "1.0.4",
     "description": "Allows parsing of PAGASA TCB PDF files into pagasa-parser Bulletins.",
     "main": "build/PagasaParserPDFSource.js",
+    "files": [
+        "bin",
+        "build",
+        "LICENSE",
+        "package.json",
+        "package-lock.json",
+        "README.md"
+    ],
     "scripts": {
         "build": "tsc",
         "test": "jest",
