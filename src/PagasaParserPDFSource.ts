@@ -19,7 +19,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
     constructor(private path : string) {
         super();
         try {
-            const java_version = child_process.execSync("java --version");
+            child_process.execSync("java --version");
         } catch (e) {
             throw new Error("Cannot find Java in PATH. Java is required for this package to function.");
         }
@@ -74,8 +74,12 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
     }
 
     extractInfo(stream: TabulaJSONOutput, lattice: TabulaJSONOutput) : BulletinInfo {
-        const countCell = search(stream, /Tropical Cyclone Bulletin No. (\d+)/gi);
-        const titleCell = countCell.next();
+        const countCell = search(stream, /Tropical Cyclone Bulletin No\. (\d+)/gi);
+        let titleCell = countCell.next();
+
+        while (titleCell.text.trim().length == 0)
+            titleCell = titleCell.next();
+
         const issued = new Date(search(stream, /Issued(?:\sat)?\s(.+)$/gi).match[1] + " GMT+8");
 
         const timeMatch = search(stream, /next bulletin at (\d+):(\d+)\s(AM|PM)\s(.+?)(?:\.|$)/gi).match;
@@ -101,7 +105,13 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
     }
 
     extractCyclone(stream: TabulaJSONOutput, lattice: TabulaJSONOutput) : Cyclone {
-        const title = search(stream, /Tropical Cyclone Bulletin No. (\d+)/gi).next().text;
+        const headerCell = search(stream, /Tropical Cyclone Bulletin No\. (\d+)/gi);
+        let titleCell = headerCell.next();
+
+        while (titleCell.text.trim().length == 0)
+            titleCell = titleCell.next();
+
+        const title = titleCell.text;
         const [, name, internationalName] = /[“"](.+?)["”](?:\s\((.+?)\))?/g.exec(title);
 
         const positionMatch = search(lattice, /([0-9.]+)°([NS]),\s?([0-9.]+)°([WE])/gi).match;

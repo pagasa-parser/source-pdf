@@ -7,7 +7,7 @@ describe("parsing tests", () => {
     jest.setTimeout(20000);
     test("original bulletin", async () => {
         const source = new PagasaParserPDFSource(
-            path.join(__dirname, "..", "pdf", "2021_Odette_03.pdf")
+            path.join(__dirname, "..", "pdf", "2021_Odette_16.pdf")
         );
 
         fs.writeFileSync(

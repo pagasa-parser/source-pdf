@@ -6,8 +6,8 @@ type ExpandedCell = TabulaCell & {
     rowId: number,
     page: TabulaPage,
     pageId: number,
-    next: () => ExpandedCell,
-    previous: () => ExpandedCell
+    next: (skipWhitespace?: boolean) => ExpandedCell,
+    previous: (skipWhitespace?: boolean) => ExpandedCell
 };
 
 export function search(array: TabulaJSONOutput, condition: RegExp, ignores?: string[])
