@@ -114,14 +114,16 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         } else {
             const timeMatch = timeSearch.match;
 
-            if (timeMatch[4] !== "today" || +timeMatch[1] < 8)
+            let dateWrapping = timeMatch[4] !== "today";
+            const expiryHourPH = +timeMatch[1] + (timeMatch[3].toLowerCase() === "pm" ? 12 : 0);
+            if (expiryHourPH - 8 < expireDate.getUTCHours()) {
+                dateWrapping = true;
+            }
+            expireDate.setUTCHours(expiryHourPH - 8);
+            expireDate.setUTCMinutes(+timeMatch[2]);
+
+            if (dateWrapping)
                 expireDate.setDate(expireDate.getDate() + 1);
-            expireDate.setUTCHours(
-                +timeMatch[1] + (timeMatch[3].toLowerCase() === "pm" ? 12 : 0) - 8,
-                +timeMatch[2],
-                0,
-                0
-            );
         }
 
         return {
