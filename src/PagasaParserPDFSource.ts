@@ -25,41 +25,60 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         }
     }
 
-    async parse(): Promise<Bulletin> {
+    tabulaStreamData: TabulaJSONOutput;
+    tabulaLatticeData: TabulaJSONOutput;
+
+    async getTabulaStreamData() : Promise<TabulaJSONOutput> {
+        if (this.tabulaStreamData != null)
+            return this.tabulaStreamData;
+
         const tabula_stream = child_process.spawn("java", [
             "-Dfile.encoding=UTF8", "-jar", path.resolve(__dirname, "..", "bin", "tabula.jar"),
             "-p", "all", "-t", "-f", "JSON", this.path
         ]);
-        const tabula_lattice = child_process.spawn("java", [
-            "-Dfile.encoding=UTF8", "-jar", path.resolve(__dirname, "..", "bin", "tabula.jar"),
-            "-p", "all", "-l", "-f", "JSON", this.path
-        ]);
-
         let tabulaStreamChunks : Buffer[] = [];
         tabula_stream.stdout.on("data", (data) => {
             tabulaStreamChunks.push(Buffer.from(data));
         });
+        tabula_stream.stderr.on("data", (data) => {
+            console.log(`err: ${data}`)
+        });
+        return new Promise<void>((res) => { tabula_stream.on("close", res) })
+            .then(() => this.tabulaStreamData =
+                JSON.parse(Buffer.concat(tabulaStreamChunks).toString("utf8")));
+    }
+
+    async getTabulaLatticeData() : Promise<TabulaJSONOutput> {
+        if (this.tabulaLatticeData != null)
+            return this.tabulaLatticeData;
+
+        const tabula_lattice = child_process.spawn("java", [
+            "-Dfile.encoding=UTF8", "-jar", path.resolve(__dirname, "..", "bin", "tabula.jar"),
+            "-p", "all", "-l", "-f", "JSON", this.path
+        ]);
         let tabulaLatticeChunks : Buffer[] = [];
         tabula_lattice.stdout.on("data", (data) => {
             tabulaLatticeChunks.push(Buffer.from(data));
         });
-
-        tabula_stream.stderr.on("data", (data) => {
-            console.log(`err: ${data}`)
-        });
         tabula_lattice.stderr.on("data", (data) => {
             console.log(`err: ${data}`)
         });
+        return new Promise<void>((res) => { tabula_lattice.on("close", res) })
+            .then(() => this.tabulaLatticeData =
+                JSON.parse(Buffer.concat(tabulaLatticeChunks).toString("utf8")));
+    }
 
-        await Promise.all([
-            new Promise<void>((res) => { tabula_stream.on("close", res) }),
-            new Promise<void>((res) => { tabula_lattice.on("close", res) })
+    async getTabulaData() : Promise<[TabulaJSONOutput, TabulaJSONOutput]> {
+        return Promise.all([
+            this.getTabulaStreamData(),
+            this.getTabulaLatticeData()
         ]);
+    }
 
-        return this.extract(
-            JSON.parse(Buffer.concat(tabulaStreamChunks).toString("utf8")),
-            JSON.parse(Buffer.concat(tabulaLatticeChunks).toString("utf8"))
-        );
+    async parse(): Promise<Bulletin> {
+        const [tabulaStreamChunks, tabulaLatticeChunks] = await this.getTabulaData();
+
+        return this.extract(tabulaStreamChunks, tabulaLatticeChunks);
     }
 
     extract(stream : TabulaJSONOutput, lattice: TabulaJSONOutput) : Bulletin {
@@ -74,7 +93,12 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
     }
 
     extractInfo(stream: TabulaJSONOutput, lattice: TabulaJSONOutput) : BulletinInfo {
+        let final = false;
         const countCell = search(stream, /Tropical Cyclone Bulletin No\. (\d+)/gi);
+
+        if (countCell.text?.endsWith("F"))
+            final = true;
+
         let titleCell = countCell.next();
 
         while (titleCell.text.trim().length == 0)
@@ -82,22 +106,29 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
 
         const issued = new Date(search(stream, /Issued(?:\sat)?\s(.+)$/gi).match[1] + " GMT+8");
 
-        const timeMatch = search(stream, /next bulletin at (\d+):(\d+)\s(AM|PM)\s(.+?)(?:\.|$)/gi).match;
+        const timeSearch = search(stream, /next bulletin at (\d+):(\d+)\s(AM|PM)\s(.+?)(?:\.|$)/gi);
+        let expireDate = new Date(issued.getTime());
+        if (timeSearch == null) {
+            expireDate = null;
+            final = true;
+        } else {
+            const timeMatch = timeSearch.match;
 
-        const expireDate = new Date(issued.getTime());
-        if (timeMatch[4] !== "today")
-            expireDate.setDate(expireDate.getDate() + 1);
-        expireDate.setUTCHours(
-            +timeMatch[1] + (timeMatch[3].toLowerCase() === "pm" ? 12 : 0) - 8,
-            +timeMatch[2],
-            0,
-            0
-        );
+            if (timeMatch[4] !== "today")
+                expireDate.setDate(expireDate.getDate() + 1);
+            expireDate.setUTCHours(
+                +timeMatch[1] + (timeMatch[3].toLowerCase() === "pm" ? 12 : 0) - 8,
+                +timeMatch[2],
+                0,
+                0
+            );
+        }
 
         return {
             title: `${countCell.text} for ${titleCell.text.replace(/“”/g, "")}`,
             count: +countCell.match[1],
             url: url.pathToFileURL(this.path).toString(),
+            final: final,
             issued: issued,
             expires: expireDate,
             summary: lattice.filter(l => l.data.length > 0)[0].data[0][0].text

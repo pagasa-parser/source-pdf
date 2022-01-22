@@ -5,15 +5,37 @@ import PagasaParserPDFSource from "../../src/PagasaParserPDFSource";
 describe("parsing tests", () => {
 
     jest.setTimeout(20000);
-    test("original bulletin", async () => {
-        const source = new PagasaParserPDFSource(
-            path.join(__dirname, "..", "pdf", "2021_Odette_16.pdf")
-        );
 
-        fs.writeFileSync(
-            path.join(__dirname, "..", "out", "Odette.json"),
-            JSON.stringify(await source.parse(), null, 4)
-        );
-    });
+    const faultyPDFs = fs.readdirSync(path.join(__dirname, "..", "pdf", "faulty"));
+    const workingPDFs = fs.readdirSync(path.join(__dirname, "..", "pdf", "working"));
+
+    for (const pdf of [...faultyPDFs, ...workingPDFs]) {
+        const faulty = faultyPDFs.includes(pdf);
+        test(`${faulty ? "Faulty" : "Working"} PDF: ${pdf}`, async () => {
+            const source = await new PagasaParserPDFSource(
+                path.join(__dirname, "..", "pdf", faulty ? "faulty" : "working", pdf)
+            );
+
+            const outDir = path.join(__dirname, "..", "out", pdf);
+            if (!fs.existsSync(outDir)) {
+                fs.mkdirSync(outDir);
+            }
+
+            fs.writeFileSync(path.join(outDir, "stream.json"),
+                JSON.stringify(await source.getTabulaStreamData()));
+            fs.writeFileSync(path.join(outDir, "lattice.json"),
+                JSON.stringify(await source.getTabulaLatticeData()));
+
+            if (faulty) {
+                await expect(async () => {
+                    fs.writeFileSync(path.join(outDir, "data.json"),
+                        JSON.stringify(await source.parse()));
+                }).rejects.toThrow();
+            } else {
+                fs.writeFileSync(path.join(outDir, "data.json"),
+                    JSON.stringify(await source.parse()));
+            }
+        });
+    }
 
 });
