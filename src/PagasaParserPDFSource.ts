@@ -114,7 +114,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         } else {
             const timeMatch = timeSearch.match;
 
-            if (timeMatch[4] !== "today")
+            if (timeMatch[4] !== "today" || +timeMatch[1] < 8)
                 expireDate.setDate(expireDate.getDate() + 1);
             expireDate.setUTCHours(
                 +timeMatch[1] + (timeMatch[3].toLowerCase() === "pm" ? 12 : 0) - 8,
