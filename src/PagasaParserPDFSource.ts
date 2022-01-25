@@ -1,13 +1,9 @@
-import {
-    AreaExtractor,
-    Bulletin, BulletinInfo, Cyclone,
-    PagasaParserSource, TCWSLevels, Landmass
-} from "pagasa-parser";
-import * as child_process from "child_process";
+import {AreaExtractor, Bulletin, BulletinInfo, Cyclone, Landmass, PagasaParserSource, TCWSLevels} from "pagasa-parser";
+import * as childProcess from "child_process";
 import * as path from "path";
 import * as url from "url";
 import {search, searchAll} from "./Utilities";
-import type { TabulaJSONOutput } from "./Tabula";
+import type {TabulaJSONOutput} from "./Tabula";
 
 export default class PagasaParserPDFSource extends PagasaParserSource {
 
@@ -16,10 +12,10 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
      *
      * @param path The string to a PDF.
      */
-    constructor(private path : string) {
+    constructor(private path: string) {
         super();
         try {
-            child_process.execSync("java --version");
+            childProcess.execSync("java --version");
         } catch (e) {
             throw new Error("Cannot find Java in PATH. Java is required for this package to function.");
         }
@@ -28,47 +24,47 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
     tabulaStreamData: TabulaJSONOutput;
     tabulaLatticeData: TabulaJSONOutput;
 
-    async getTabulaStreamData() : Promise<TabulaJSONOutput> {
+    async getTabulaStreamData(): Promise<TabulaJSONOutput> {
         if (this.tabulaStreamData != null)
             return this.tabulaStreamData;
 
-        const tabula_stream = child_process.spawn("java", [
+        const tabulaStream = childProcess.spawn("java", [
             "-Dfile.encoding=UTF8", "-jar", path.resolve(__dirname, "..", "bin", "tabula.jar"),
             "-p", "all", "-t", "-f", "JSON", this.path
         ]);
-        let tabulaStreamChunks : Buffer[] = [];
-        tabula_stream.stdout.on("data", (data) => {
+        const tabulaStreamChunks: Buffer[] = [];
+        tabulaStream.stdout.on("data", (data) => {
             tabulaStreamChunks.push(Buffer.from(data));
         });
-        tabula_stream.stderr.on("data", (data) => {
-            console.log(`err: ${data}`)
+        tabulaStream.stderr.on("data", (data) => {
+            console.log(`err: ${data}`);
         });
-        return new Promise<void>((res) => { tabula_stream.on("close", res) })
+        return new Promise<void>((res) => { tabulaStream.on("close", res); })
             .then(() => this.tabulaStreamData =
                 JSON.parse(Buffer.concat(tabulaStreamChunks).toString("utf8")));
     }
 
-    async getTabulaLatticeData() : Promise<TabulaJSONOutput> {
+    async getTabulaLatticeData(): Promise<TabulaJSONOutput> {
         if (this.tabulaLatticeData != null)
             return this.tabulaLatticeData;
 
-        const tabula_lattice = child_process.spawn("java", [
+        const tabulaData = childProcess.spawn("java", [
             "-Dfile.encoding=UTF8", "-jar", path.resolve(__dirname, "..", "bin", "tabula.jar"),
             "-p", "all", "-l", "-f", "JSON", this.path
         ]);
-        let tabulaLatticeChunks : Buffer[] = [];
-        tabula_lattice.stdout.on("data", (data) => {
+        const tabulaLatticeChunks: Buffer[] = [];
+        tabulaData.stdout.on("data", (data) => {
             tabulaLatticeChunks.push(Buffer.from(data));
         });
-        tabula_lattice.stderr.on("data", (data) => {
-            console.log(`err: ${data}`)
+        tabulaData.stderr.on("data", (data) => {
+            console.log(`err: ${data}`);
         });
-        return new Promise<void>((res) => { tabula_lattice.on("close", res) })
+        return new Promise<void>((res) => { tabulaData.on("close", res); })
             .then(() => this.tabulaLatticeData =
                 JSON.parse(Buffer.concat(tabulaLatticeChunks).toString("utf8")));
     }
 
-    async getTabulaData() : Promise<[TabulaJSONOutput, TabulaJSONOutput]> {
+    async getTabulaData(): Promise<[TabulaJSONOutput, TabulaJSONOutput]> {
         return Promise.all([
             this.getTabulaStreamData(),
             this.getTabulaLatticeData()
@@ -81,7 +77,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         return this.extract(tabulaStreamChunks, tabulaLatticeChunks);
     }
 
-    extract(stream : TabulaJSONOutput, lattice: TabulaJSONOutput) : Bulletin {
+    extract(stream: TabulaJSONOutput, lattice: TabulaJSONOutput): Bulletin {
         const info = this.extractInfo(stream, lattice);
         const cyclone = this.extractCyclone(stream, lattice);
         const signals = this.extractSignals(stream, lattice);
@@ -92,7 +88,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         return { active, info, cyclone, signals };
     }
 
-    extractInfo(stream: TabulaJSONOutput, lattice: TabulaJSONOutput) : BulletinInfo {
+    extractInfo(stream: TabulaJSONOutput, lattice: TabulaJSONOutput): BulletinInfo {
         let final = false;
         const countCell = search(stream, /Tropical Cyclone Bulletin No\. (\d+)/gi);
 
@@ -134,10 +130,10 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
             issued: issued,
             expires: expireDate,
             summary: lattice.filter(l => l.data.length > 0)[0].data[0][0].text
-        }
+        };
     }
 
-    extractCyclone(stream: TabulaJSONOutput, lattice: TabulaJSONOutput) : Cyclone {
+    extractCyclone(stream: TabulaJSONOutput, lattice: TabulaJSONOutput): Cyclone {
         const headerCell = search(stream, /Tropical Cyclone Bulletin No\. (\d+)/gi);
         let titleCell = headerCell.next();
 
@@ -154,7 +150,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         };
 
         const movementMatch = search(lattice, /present\s?movement/gi);
-        const movementString : string = movementMatch.page.data[movementMatch.rowId + 1][0].text;
+        const movementString: string = movementMatch.page.data[movementMatch.rowId + 1][0].text;
 
         return {
             name: name,
@@ -165,8 +161,8 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         };
     }
 
-    extractSignals(stream: TabulaJSONOutput, lattice: TabulaJSONOutput) : TCWSLevels {
-        const signals : TCWSLevels = { 1: null, 2: null, 3: null, 4: null, 5: null };
+    extractSignals(stream: TabulaJSONOutput, lattice: TabulaJSONOutput): TCWSLevels {
+        const signals: TCWSLevels = { 1: null, 2: null, 3: null, 4: null, 5: null };
 
         const signalHeaders = searchAll(lattice, /^(\d)(?:.|[\r\n])+hours\)/gi);
         for (const signalCell of signalHeaders) {

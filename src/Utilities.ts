@@ -10,21 +10,19 @@ type ExpandedCell = TabulaCell & {
     previous: (skipWhitespace?: boolean) => ExpandedCell
 };
 
-export function search(array: TabulaJSONOutput, condition: RegExp, ignores?: string[])
-    : ExpandedCell & { match: RegExpExecArray };
-export function search(array: TabulaJSONOutput, condition: (item: string) => boolean, ignores?: string[])
-    : ExpandedCell;
+export function search(array: TabulaJSONOutput, condition: RegExp, ignores?: string[]): ExpandedCell & { match: RegExpExecArray };
+export function search(array: TabulaJSONOutput, condition: (item: string) => boolean, ignores?: string[]): ExpandedCell;
 export function search(
     array: TabulaJSONOutput,
     condition: RegExp | ((item: string) => boolean),
     ignores?: string[]
-) : ExpandedCell {
+): ExpandedCell {
     for (const pageId in array) {
         const page = array[pageId];
         for (const rowId in page.data) {
             const row = page.data[rowId];
 
-            const upgrade = (cellId : number, row: TabulaCell[], page: TabulaPage) => {
+            const upgrade = (cellId: number, row: TabulaCell[], page: TabulaPage) => {
                 return Object.assign(row[cellId], {
                     cellId,
                     row,
@@ -49,7 +47,7 @@ export function search(
                             return upgrade(0, array[+pageId - 1].data[0], array[+pageId - 1]);
                         return null;
                     }
-                })
+                });
             };
 
             for (const cellId in row) {
@@ -70,11 +68,11 @@ export function search(
     return null;
 }
 
-export function searchAll(array: TabulaJSONOutput, condition: RegExp) : (ExpandedCell & { match: RegExpExecArray })[];
-export function searchAll(array: TabulaJSONOutput, condition: (item: string) => boolean) : ExpandedCell[];
+export function searchAll(array: TabulaJSONOutput, condition: RegExp): (ExpandedCell & { match: RegExpExecArray })[];
+export function searchAll(array: TabulaJSONOutput, condition: (item: string) => boolean): ExpandedCell[];
 export function searchAll(array: TabulaJSONOutput, condition: RegExp | ((item: string) => boolean)) {
     let lastSearch;
-    const ignores : string[] = [];
+    const ignores: string[] = [];
     const results = [];
 
     do {
