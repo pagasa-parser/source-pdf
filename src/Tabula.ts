@@ -12,6 +12,7 @@ export interface TabulaCell extends TabulaElement {
 export type TabulaData = TabulaCell[][];
 
 export interface TabulaPage extends TabulaElement {
+    // eslint-disable-next-line camelcase
     extraction_method: "lattice" | "stream";
     bottom: number;
     right: number;

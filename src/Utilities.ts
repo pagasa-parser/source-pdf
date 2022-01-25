@@ -68,9 +68,11 @@ export function search(
     return null;
 }
 
-export function searchAll(array: TabulaJSONOutput, condition: RegExp): (ExpandedCell & { match: RegExpExecArray })[];
+type RegExpExpandedCell = ExpandedCell & { match: RegExpExecArray };
+type SearchAllCell = RegExpExpandedCell | ExpandedCell;
+export function searchAll(array: TabulaJSONOutput, condition: RegExp): RegExpExpandedCell[];
 export function searchAll(array: TabulaJSONOutput, condition: (item: string) => boolean): ExpandedCell[];
-export function searchAll(array: TabulaJSONOutput, condition: RegExp | ((item: string) => boolean)) {
+export function searchAll(array: TabulaJSONOutput, condition: RegExp | ((item: string) => boolean)): SearchAllCell[] {
     let lastSearch;
     const ignores: string[] = [];
     const results = [];
