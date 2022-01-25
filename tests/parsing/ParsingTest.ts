@@ -16,9 +16,9 @@ describe("parsing tests", () => {
                 path.join(__dirname, "..", "pdf", faulty ? "faulty" : "working", pdf)
             );
 
-            const outDir = path.join(__dirname, "..", "out", pdf);
+            const outDir = path.join(__dirname, "..", "out", pdf.replace(/.pdf$/g, ""));
             if (!fs.existsSync(outDir)) {
-                fs.mkdirSync(outDir);
+                fs.mkdirSync(outDir, { recursive: true });
             }
 
             fs.writeFileSync(path.join(outDir, "stream.json"),
