@@ -141,7 +141,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
             titleCell = titleCell.next();
 
         const title = titleCell.text;
-        const [, category, name, internationalName] = /(?:(.*?)\s|^)[“"](.+?)["”](?:\s\((.+?)\))?/g.exec(title);
+        const [, category, name, internationalName] = /(?:(.*?)\s|^)[“"]?(.+?)["”]?(?:\s\((.+?)\))?/g.exec(title);
 
         const positionMatch = search(lattice, /([0-9.]+)°([NS]),\s?([0-9.]+)°([WE])/gi).match;
         const position = {
