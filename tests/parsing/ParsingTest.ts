@@ -10,6 +10,10 @@ describe("parsing tests", () => {
     const workingPDFs = fs.readdirSync(path.join(__dirname, "..", "pdf", "working"));
 
     for (const pdf of [...faultyPDFs, ...workingPDFs]) {
+        if ( process.env.PP_FILTER && !new RegExp(process.env.PP_FILTER, "i").test(pdf) ) {
+            continue;
+        }
+
         const faulty = faultyPDFs.includes(pdf);
         test(`${faulty ? "Faulty" : "Working"} PDF: ${pdf}`, async () => {
             const source = await new PagasaParserPDFSource(

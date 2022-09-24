@@ -140,8 +140,8 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
         while (titleCell.text.trim().length == 0)
             titleCell = titleCell.next();
 
-        const title = titleCell.text;
-        const [, category, name, internationalName] = /(?:(.*?)\s|^)[“"]?(.+?)["”]?(?:\s\((.+?)\))?/g.exec(title);
+        const title = titleCell.text.trim();
+        const [, category, name, internationalName] = /^(?:(.*)\s|^)[“"]?([^()]+?)["”]?(?:\s\((.+?)\))?$/g.exec(title);
 
         const positionMatch = search(lattice, /([0-9.]+)°([NS]),\s?([0-9.]+)°([WE])/gi).match;
         const position = {
@@ -165,7 +165,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
     extractSignals(stream: TabulaJSONOutput, lattice: TabulaJSONOutput): TCWSLevels {
         const signals: TCWSLevels = { 1: null, 2: null, 3: null, 4: null, 5: null };
 
-        const signalHeaders = searchAll(lattice, /^(\d)(?:.|[\r\n])+hours\)/gi);
+        const signalHeaders = searchAll(lattice, /^(\d)(?:.|[\r\n])+(?:winds?|hours\))/gi);
         for (const signalCell of signalHeaders) {
             const signal = +signalCell.match[1] as 1 | 2 | 3 | 4 | 5;
 
