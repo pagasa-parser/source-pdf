@@ -149,8 +149,16 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
             lon: +positionMatch[3] * (positionMatch[4] === "W" ? -1 : 1),
         };
 
-        const movementMatch = search(lattice, /present\s?movement/gi);
-        const movementString: string = movementMatch.page.data[movementMatch.rowId + 1][0].text;
+        const movementMatch = search(lattice, /present\s?movement(?:.*([\r\n]*.+))?/gi);
+        let movementString: string;
+        if (movementMatch) {
+            if (movementMatch.match[1] != null && movementMatch.match[1].trim().length !== 0) {
+                // Movement string is in same cell. Parse out.
+                movementString = movementMatch.match[1].trim();
+            } else {
+                movementString = movementMatch.page.data[movementMatch.rowId + 1][0].text;
+            }
+        }
 
         return {
             name: name,
