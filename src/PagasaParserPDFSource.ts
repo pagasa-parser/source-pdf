@@ -90,7 +90,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
 
     extractInfo(stream: TabulaJSONOutput, lattice: TabulaJSONOutput): BulletinInfo {
         let final = false;
-        const countCell = search(stream, /Tropical Cyclone Bulletin No\. (\d+)/gi);
+        const countCell = search(stream, /Tropical Cyclone Bulletin N[ro]\. (\d+)/gi);
 
         if (countCell.text?.endsWith("F"))
             final = true;
@@ -134,7 +134,7 @@ export default class PagasaParserPDFSource extends PagasaParserSource {
     }
 
     extractCyclone(stream: TabulaJSONOutput, lattice: TabulaJSONOutput): Cyclone {
-        const headerCell = search(stream, /Tropical Cyclone Bulletin No\. (\d+)/gi);
+        const headerCell = search(stream, /Tropical Cyclone Bulletin N[ro]\. (\d+)/gi);
         let titleCell = headerCell.next();
 
         while (titleCell.text.trim().length == 0)
