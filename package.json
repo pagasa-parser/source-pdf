@@ -56,7 +56,7 @@
         "typescript": "^4.6.3"
     },
     "peerDependencies": {
-        "pagasa-parser": "^2.1.0"
+        "pagasa-parser": "^2.2.3"
     },
     "dependencies": {
         "axios": "^0.23.0",
